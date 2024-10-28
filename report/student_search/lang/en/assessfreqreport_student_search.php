@@ -27,6 +27,8 @@ $string['pluginname'] = 'Report - Student Search';
 
 $string['tab:name'] = 'Student Search';
 
+$string['studentsearch:view'] = 'Ability to view the student search report.';
+
 $string['studentsearch:head'] = 'Student attempt status';
 
 $string['settings:graphsheading'] = 'Chart settings';

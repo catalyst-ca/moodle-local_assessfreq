@@ -166,7 +166,12 @@ const yearDropdown = () => {
         event.preventDefault();
         let element = event.target;
 
-         // Save selection as a user preference.
+        // Don't process already selected links.
+        if (element.classList.contains('active')) {
+            return;
+        }
+
+        // Save selection as a user preference.
         UserPreference.setUserPreference('assessfreqreport_heatmap_year_preference', element.dataset.year);
 
         // Reload based on selected year.
@@ -184,6 +189,11 @@ const metricDropdown = () => {
     targets.forEach(el => el.addEventListener('click', event => {
         event.preventDefault();
         let element = event.target;
+
+        // Don't process already selected links.
+        if (element.classList.contains('active')) {
+            return;
+        }
 
         // Save selection as a user preference.
         UserPreference.setUserPreference('assessfreqreport_heatmap_metric_preference', element.dataset.metric);

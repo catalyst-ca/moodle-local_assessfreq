@@ -130,6 +130,10 @@ const moduleDropdown = () => {
 const tableSearchAheadSet = (event) => {
     event.preventDefault();
     if (event.target.tagName.toLowerCase() === 'a') {
+        // Don't process already selected links.
+        if (event.target.classList.contains('active')) {
+            return;
+        }
         let hours = event.target.dataset.metric;
         UserPreference.setUserPreference('assessfreqreport_activities_in_progress_hoursahead_preference', hours);
         // Reload based on selected year.
@@ -145,6 +149,10 @@ const tableSearchAheadSet = (event) => {
 const tableSearchBehindSet = (event) => {
     event.preventDefault();
     if (event.target.tagName.toLowerCase() === 'a') {
+        // Don't process already selected links.
+        if (event.target.classList.contains('active')) {
+            return;
+        }
         let hours = event.target.dataset.metric;
         UserPreference.setUserPreference('assessfreqreport_activities_in_progress_hoursbehind_preference', hours);
         // Reload based on selected year.

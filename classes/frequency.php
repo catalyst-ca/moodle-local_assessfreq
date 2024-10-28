@@ -485,6 +485,17 @@ class frequency {
                 }
             }
 
+            // Clear the caches to prevent desync between caches and database.
+            cache::make('local_assessfreq', 'siteevents')->purge();
+            cache::make('local_assessfreq', 'userevents')->purge();
+            cache::make('local_assessfreq', 'courseevents')->purge();
+            cache::make('local_assessfreq', 'eventsduemonth')->purge();
+            cache::make('local_assessfreq', 'monthlyuser')->purge();
+            cache::make('local_assessfreq', 'eventsdueactivity')->purge();
+            cache::make('local_assessfreq', 'yearevents')->purge();
+            cache::make('local_assessfreq', 'usereventsallfrequencyarray')->purge();
+            cache::make('local_assessfreq', 'eventusers')->purge();
+
             $transaction->allow_commit();
         } catch (Exception $e) {
             $transaction->rollback($e);

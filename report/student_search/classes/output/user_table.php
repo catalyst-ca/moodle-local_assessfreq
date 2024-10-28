@@ -376,6 +376,9 @@ class user_table extends table_sql implements renderable {
      * @return string html used to display the field.
      */
     public function col_timelimit($row) {
+        if ($row->timelimit == '0') {
+            return '-';
+        }
         $timelimit = format_time($row->timelimit);
 
         if ($row->timelimit != $row->quiztimelimit) {
@@ -419,7 +422,7 @@ class user_table extends table_sql implements renderable {
      * @param array $quizzes Array of quizzes to sort.
      * @return array $quizzes the sorted quizzes.
      */
-    public function sort_quizzes(array $quizzes): array {
+    public function sort(array $quizzes): array {
         // Comparisons are performed according to PHP's usual type comparison rules.
         uasort($quizzes, function ($a, $b) {
 
@@ -571,7 +574,7 @@ class user_table extends table_sql implements renderable {
         }
 
         if (!empty($this->get_sql_sort())) {
-            $allrecords = $this->sort_quizzes($allrecords);
+            $allrecords = $this->sort($allrecords);
         }
 
         $data = [];
@@ -609,5 +612,16 @@ class user_table extends table_sql implements renderable {
 
         $this->pagesize($pagesize, $offsetcount);
         $this->rawdata = $data;
+    }
+
+    /**
+     * Override the table's show_hide_link method to prevent the show/hide links from rendering.
+     *
+     * @param string $column the column name, index into various names.
+     * @param int $index numerical index of the column.
+     * @return string HTML fragment.
+     */
+    protected function show_hide_link($column, $index) {
+        return '';
     }
 }

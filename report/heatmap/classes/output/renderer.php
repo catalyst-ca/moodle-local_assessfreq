@@ -63,6 +63,7 @@ class renderer extends plugin_renderer_base {
         $scalestable->data = [new html_table_row($scalecells)];
 
         $modules = get_modules($preferencemodules);
+
         $selectedmodules = [];
         foreach ($modules as $module) {
             if (isset($module['module']['active'])) {

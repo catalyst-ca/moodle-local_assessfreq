@@ -45,6 +45,10 @@ const yearDropdown = () => {
     targets.forEach(el => el.addEventListener('click', event => {
         event.preventDefault();
         let element = event.target;
+        // Don't process already selected links.
+        if (element.classList.contains('active')) {
+            return;
+        }
 
         if (element.tagName.toLowerCase() === 'a') { // Only act on certain elements.
             let yearselect = element.dataset.year;
