@@ -56,7 +56,7 @@ class local_assessfreq_external extends external_api {
      * @return string JSON response.
      */
     public static function get_courses(string $query) : string {
-        global $DB;
+        global $DB, $SITE, $COURSE;
         manager::write_close(); // Close session early this is a read op.
 
         // Parameter validation.
@@ -66,16 +66,27 @@ class local_assessfreq_external extends external_api {
         );
 
         // Execute API call.
-        $sql = 'SELECT id, fullname FROM {course} WHERE ' . $DB->sql_like('fullname', ':fullname', false) . ' AND id <> 1';
+        $sql = 'SELECT id, fullname, category FROM {course} WHERE ' . $DB->sql_like('fullname', ':fullname', false) . ' AND id <> 1';
         $params = ['fullname' => '%' . $DB->sql_like_escape($query) . '%'];
-        $courses = $DB->get_records_sql($sql, $params, 0, 11);
+        $courses = $DB->get_records_sql($sql, $params, 0, 30);
 
         $data = [];
+        if (has_capability('local/assessfreq:view', context_system::instance())) {
+            $data[SITEID] = [
+                "id" => $SITE->id,
+                "fullname" => external_format_string($SITE->fullname, true, ["escape" => false])
+            ];
+        }
+        $categories = \core_course_category::make_categories_list();
         foreach ($courses as $course) {
             $data[$course->id] = [
                 "id" => $course->id,
-                "fullname" => external_format_string($course->fullname, true, ["escape" => false])
+                "fullname" => $categories[$course->category] . ' / ' . external_format_string($course->fullname, true, ["escape" => false])
             ];
+        }
+
+        if (isset($data[$COURSE->id])) {
+            unset($data[$COURSE->id]);
         }
 
         return json_encode(array_values($data));

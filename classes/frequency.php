@@ -27,6 +27,7 @@ namespace local_assessfreq;
 use cache;
 use context;
 use core\dml\sql_join;
+use core\oauth2\service\microsoft;
 use Exception;
 use moodle_recordset;
 use stdClass;
@@ -62,6 +63,11 @@ class frequency {
      * @var integer $batchsize
      */
     private int $batchsize = 100;
+
+    /**
+     * Cache of event users.
+     */
+    private array $eventuserscache = [];
 
     /**
      * Given a modle shortname get capabilities that users must have
@@ -335,15 +341,33 @@ class frequency {
      * this can take a long time. Consider using the get_event_users method
      * if you don't need the most up to date data.
      *
-     * @param int $contextid The context ID in a course for the event to check.
+     * @param int $contextid The module context ID for the event to check.
      * @param string $module The type of module the event is for.
      * @return array $users An array of user IDs.
      */
     public function get_event_users_raw(int $contextid, string $module): array {
+
         $context = context::instance_by_id($contextid);
+        $coursecontext = $context->get_parent_context();
+
+        $cachekey = "{$coursecontext->id}-{$module}";
+        if (isset($this->eventuserscache[$cachekey])) {
+            return $this->eventuserscache[$cachekey];
+        }
+
         $capabilities = $this->get_module_capabilities($module);
 
-        return $this->get_enrolled_users($context, $capabilities);
+        $roles = [];
+        foreach ($capabilities as $capability) {
+            $roles = $roles + get_roles_with_capability($capability, CAP_ALLOW, $context);
+        }
+        $users = [];
+        foreach ($roles as $role) {
+            $users = $users + get_users_from_role_on_context($role, $coursecontext);
+        }
+
+        $this->eventuserscache[$cachekey] = array_column($users, 'userid');
+        return $this->eventuserscache[$cachekey];
     }
 
     /**
@@ -421,7 +445,7 @@ class frequency {
         $userrecords = [];
         foreach ($users as $user) {
             $record = new stdClass();
-            $record->userid = $user->id;
+            $record->userid = $user->userid;
             $record->eventid = $eventid;
 
             $userrecords[] = $record;

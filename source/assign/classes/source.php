@@ -78,7 +78,7 @@ class source extends source_base {
      * @inheritDoc
      */
     public function get_user_capabilities() : array {
-        return ['mod/assign:submit', 'mod/assign:view'];
+        return ['mod/assign:submit'];
     }
 
     /**
@@ -417,18 +417,17 @@ class source extends source_base {
         return $override->id;
     }
 
-
     /**
      * Get counts for inprogress assessments, both total in progress assignment activities
      * and total participants in progress.
      *
      * @param int $now Timestamp to use for reference for time.
-     * @param bool $textual If true counts are returned with text for output.
+     * @param int $hoursahead
+     * @param int $hoursbehind
      */
-    public function get_inprogress_count(int $now, bool $textual = true) {
+    public function get_inprogress_count(int $now, int $hoursahead, int $hoursbehind) {
         // Get tracked assignments.
-        $trackedassignments = $this->get_tracked_assignments_with_overrides($now, 8 * HOURSECS, 8 * HOURSECS);
-
+        $trackedassignments = $this->get_tracked_assignments_with_overrides($now, $hoursahead * HOURSECS, $hoursbehind * HOURSECS);
         $counts = [
             'assessments' => 0,
             'participants' => 0,
@@ -444,10 +443,7 @@ class source extends source_base {
             }
         }
 
-        if ($textual) {
-            return get_string('inprogress:assessments', 'assessfreqsource_assign', $counts);
-        }
-        return $counts;
+        return get_string('inprogress:assessments', 'assessfreqsource_assign', $counts);
     }
 
     /**
@@ -542,6 +538,7 @@ class source extends source_base {
             'upcoming' => [],
         ];
 
+        //$trackedassignments = array_slice($trackedassignments, 0, 10);
         // Itterate through the hours, processing in progress and upcoming assignments.
         for ($hour = 0; $hour <= $hoursahead; $hour++) {
             $time = $now + (HOURSECS * $hour);
@@ -554,17 +551,17 @@ class source extends source_base {
 
             // Seperate out inprogress and upcoming assignments, then get data for each assignment.
             foreach ($trackedassignments as $assignment) {
-                $assigndata = $this->get_assign_data($assignment);
+
                 $allowsubmissionsfromdate = $assignment->allowsubmissionsfromdate;
                 if ($assignment->allowsubmissionsfromdate < $time && $assignment->duedate > $time && $hour === 0) {
-                    $assignments['inprogress'][$assignment->id] = $assigndata;
+                    $assignments['inprogress'][$assignment->id] = $this->get_assign_data($assignment);
                     unset($trackedassignments[$assignment->id]);
                 } else if ($allowsubmissionsfromdate >= $time && $allowsubmissionsfromdate < ($time + HOURSECS)) {
-                    $assignments['upcoming'][$time][$assignment->id] = $assigndata;
+                    $assignments['upcoming'][$time][$assignment->id] = $this->get_assign_data($assignment);
                     unset($trackedassignments[$assignment->id]);
                 } else {
                     if (isset($assignment->overrides)) {
-                        $assignments['inprogress'][$assignment->id] = $assigndata;
+                        $assignments['inprogress'][$assignment->id] = $this->get_assign_data($assignment);
                         unset($trackedassignments[$assignment->id]);
                     }
                 }
@@ -661,7 +658,7 @@ class source extends source_base {
         $assigndata->name = format_string($assignrecord->name, true, ["context" => $context, "escape" => true]);
         $assigndata->allowsubmissionsfromdate = $allowsubmissionsfromdate;
         $assigndata->duedate = $duedate;
-        $assigndata->timelimit = format_time($assignrecord->timelimit);
+        $assigndata->timelimit = !empty($assignrecord->timelimit) ? format_time($assignrecord->timelimit) : '-';
         $assigndata->earlyopen = $earlyopen;
         $assigndata->earlyopenstamp = $earlyopenstamp;
         $assigndata->lateclose = $lateclose;

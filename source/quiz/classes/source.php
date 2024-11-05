@@ -212,6 +212,8 @@ class Source extends source_base {
      * and total participants in progress.
      *
      * @param int $now Timestamp to use for reference for time.
+     * @param int $hoursahead
+     * @param int $hoursbehind
      */
     public function get_inprogress_count(int $now, int $hoursahead, int $hoursbehind) {
         // Get tracked quizzes.
@@ -426,6 +428,7 @@ class Source extends source_base {
             'upcoming' => [],
         ];
 
+        $trackedquizzes = array_slice($trackedquizzes, 0, 10);
         // Itterate through the hours, processing in progress and upcoming quizzes.
         for ($hour = 0; $hour <= $hoursahead; $hour++) {
             $time = $now + (HOURSECS * $hour);
@@ -438,17 +441,16 @@ class Source extends source_base {
 
             // Seperate out inprogress and upcoming quizzes, then get data for each quiz.
             foreach ($trackedquizzes as $quiz) {
-                $quizdata = $this->get_quiz_data($quiz);
 
                 if ($quiz->timeopen < $time && $quiz->timeclose > $time && $hour === 0) { // Get inprogress quizzes.
-                    $quizzes['inprogress'][$quiz->id] = $quizdata;
+                    $quizzes['inprogress'][$quiz->id] = $this->get_quiz_data($quiz);
                     unset($trackedquizzes[$quiz->id]); // Remove quiz from array to help with performance.
                 } else if (($quiz->timeopen >= $time) && ($quiz->timeopen < ($time + HOURSECS))) { // Get upcoming quizzes.
-                    $quizzes['upcoming'][$time][$quiz->id] = $quizdata;
+                    $quizzes['upcoming'][$time][$quiz->id] = $this->get_quiz_data($quiz);
                     unset($trackedquizzes[$quiz->id]);
                 } else {
                     if (isset($quiz->overrides)) {
-                        $quizzes['inprogress'][$quiz->id] = $quizdata;
+                        $quizzes['inprogress'][$quiz->id] = $this->get_quiz_data($quiz);
                         unset($trackedquizzes[$quiz->id]);
                     }
                 }
@@ -549,7 +551,7 @@ class Source extends source_base {
         $quizdata->name = format_string($quizrecord->name, true, ["context" => $context, "escape" => true]);
         $quizdata->timeopen = $timesopen;
         $quizdata->timeclose = $timeclose;
-        $quizdata->timelimit = format_time($quizrecord->timelimit);
+        $quizdata->timelimit = !empty($quizrecord->timelimit) ? format_time($quizrecord->timelimit) : '-';
         $quizdata->earlyopen = $earlyopen;
         $quizdata->earlyopenstamp = $earlyopenstamp;
         $quizdata->lateclose = $lateclose;

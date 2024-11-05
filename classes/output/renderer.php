@@ -25,6 +25,8 @@
 
 namespace local_assessfreq\output;
 
+use local_assessfreq\form\course_search;
+use local_assessfreq\report_base;
 use plugin_renderer_base;
 
 class renderer extends plugin_renderer_base {
@@ -34,9 +36,11 @@ class renderer extends plugin_renderer_base {
      * @return void
      */
     public function render_reports() : void {
+        global $PAGE;
         $reports = get_reports();
         $reportoutputs = [];
         foreach ($reports as $report) {
+            /* @var $report report_base */
             $reportoutputs[] = [
                 'tablink' => $report->get_tablink(), // Plugin name.
                 'tabname' => $report->get_name(), // Display name.
@@ -47,11 +51,31 @@ class renderer extends plugin_renderer_base {
         usort($reportoutputs, function($a, $b) {
             return $a['weight'] <=> $b['weight'];
         });
+        $courseselectoptions = [];
+        $courseselect = '';
+        $categories = \core_course_category::make_categories_list();
+
+        foreach ($categories as $categoryid => $category) {
+            $courses = get_courses($categoryid);
+            foreach ($courses as $course) {
+                $courseselectoptions[$course->id] = $category . ' - ' . $course->fullname;
+            }
+        }
+        if (!empty($courseselectoptions)) {
+            $courseselect = $this->single_select(
+                '#',
+                'courseid',
+                $courseselectoptions,
+                $PAGE->course->id != SITEID ? $PAGE->course->id : '',
+                ['' => get_string('courseselect', 'local_assessfreq')],
+            );
+        }
         $output = $this->output->header();
         $output .= $this->render_from_template(
             'local_assessfreq/index',
             [
-                'reports' => $reportoutputs
+                'reports' => $reportoutputs,
+                'courseselect' => $courseselect,
             ]
         );
         $output .= $this->output->footer();

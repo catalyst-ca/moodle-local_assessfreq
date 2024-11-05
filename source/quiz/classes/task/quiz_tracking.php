@@ -69,7 +69,7 @@ class quiz_tracking extends scheduled_task {
 
         foreach ($quizzes as $quiz) {
             [, $cm] = get_course_and_cm_from_instance($quiz->id, 'quiz');
-            $quizusersbyquizid[$quiz->id] = array_column($frequency->get_event_users_raw($cm->context->id, 'quiz'), 'id');
+            $quizusersbyquizid[$quiz->id] = array_column($frequency->get_event_users_raw($cm->context->id, 'quiz'), 'userid');
         }
 
         $loggedinusers = get_loggedin_users(array_unique(array_reduce($quizusersbyquizid, 'array_merge', [])));

@@ -157,7 +157,7 @@ abstract class source_base {
      * Given an assess ID and module get its most recent tracking information.
      *
      * @param int $assessid The ID of the assessment.
-     * @return mixed $tracking Tracking reocrds for the quiz.
+     * @return mixed $tracking Tracking record.
      */
     protected function get_recent_tracking(int $assessid) {
         global $DB;
@@ -173,5 +173,4 @@ abstract class source_base {
             [$assessid, $this->get_module()]
         );
     }
-
 }

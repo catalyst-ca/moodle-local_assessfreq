@@ -101,19 +101,24 @@ class renderer extends plugin_renderer_base {
         $participantseriesdata = array_values($participantseriesdata);
         $labels = array_values($labels);
 
-        $series = new chart_series($seriestitle, $seriesdata);
-        $participantseries = new chart_series($participantseries, $participantseriesdata);
+        if ($seriesdata) {
+            $series = new chart_series($seriestitle, $seriesdata);
+            $participantseries = new chart_series($participantseries, $participantseriesdata);
 
-        $chart = new chart_bar();
-        $chart->add_series($series);
-        $chart->add_series($participantseries);
-        $chart->set_labels($labels);
+            $chart = new chart_bar();
+            $chart->add_series($series);
+            $chart->add_series($participantseries);
+            $chart->set_labels($labels);
 
+            $contents = $this->render($chart);
+        } else {
+            $contents = '';
+        }
         $upcomingcontainer = $this->render_from_template(
             'local_assessfreq/card',
             [
                 'header' => get_string('upcomingchart:head', 'assessfreqreport_activities_in_progress'),
-                'contents' => $this->render($chart)
+                'contents' => $contents,
             ]
         );
 
@@ -147,21 +152,27 @@ class renderer extends plugin_renderer_base {
             get_config('assessfreqreport_activities_in_progress', 'finishedcolor'),
         ];
 
-        $chart = new chart_pie();
-        $chart->set_doughnut(true);
-        $participants = new chart_series(
-            get_string('summarychart:participants', 'assessfreqreport_activities_in_progress'),
-            $seriesdata
-        );
-        $participants->set_colors($colors);
-        $chart->add_series($participants);
-        $chart->set_labels($labels);
+        if ($participants) {
+            $chart = new chart_pie();
+            $chart->set_doughnut(true);
+            $participants = new chart_series(
+                get_string('summarychart:participants', 'assessfreqreport_activities_in_progress'),
+                $seriesdata
+            );
+            $participants->set_colors($colors);
+            $chart->add_series($participants);
+            $chart->set_labels($labels);
+
+            $contents = $this->render($chart);
+        } else {
+            $contents = '';
+        }
 
         $summarycontainer = $this->render_from_template(
             'local_assessfreq/card',
             [
                 'header' => get_string('summarychart:head', 'assessfreqreport_activities_in_progress'),
-                'contents' => $this->render($chart)
+                'contents' => $contents
             ]
         );
 
@@ -274,6 +285,10 @@ class renderer extends plugin_renderer_base {
                     $activities[$key] = $finished;
                 }
             }
+        }
+
+        if (empty($activities)) {
+            return '';
         }
 
         [$filtered, $totalrows] = $this->filter($activities, $search, $page, $pagesize);

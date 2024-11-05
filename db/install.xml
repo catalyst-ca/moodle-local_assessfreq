@@ -82,7 +82,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="assessid" UNIQUE="false" FIELDS="assessid"/>
-        <INDEX NAME="module" UNIQUE="false" FIELDS="module"/>
+        <INDEX NAME="assessidmodule" UNIQUE="false" FIELDS="assessid,module"/>
       </INDEXES>
     </TABLE>
   </TABLES>
