@@ -470,7 +470,7 @@ class user_table extends table_sql implements renderable {
 
         // Get the quizzes that we want users for.
         $quizsource = new Source();
-        $allquizzes = $quizsource->get_quiz_summaries($this->now, $this->hoursahead, $this->hoursbehind);
+        $allquizzes = $quizsource->get_quiz_summaries($this->now, $this->hoursahead, $this->hoursbehind, false);
 
         $inprogressquizzes = $allquizzes['inprogress'];
         $upcomingquizzes = [];
@@ -493,7 +493,7 @@ class user_table extends table_sql implements renderable {
         $allrecords = [];
 
         foreach ($quizzes as $quizobj) {
-            $context = $quizsource->get_quiz_context($quizobj->assessid);
+            $context = $quizsource->get_quiz_context($quizobj->id);
 
             [$joins, $wheres, $params] = $frequency->generate_enrolled_wheres_joins_params($context, $capabilities);
             $attemptsql = 'SELECT qa_a.userid, qa_a.state, qa_a.quiz, qa_a.id as attemptid,
@@ -513,8 +513,8 @@ class user_table extends table_sql implements renderable {
             $joins .= " LEFT JOIN ($attemptsql) qa ON u.id = qa.userid";
             $joins .= " LEFT JOIN ($sessionsql) us ON u.id = us.userid";
 
-            $params['qaquiz'] = $quizobj->assessid;
-            $params['qoquiz'] = $quizobj->assessid;
+            $params['qaquiz'] = $quizobj->id;
+            $params['qoquiz'] = $quizobj->id;
             $params['stm'] = $timedout;
 
             $finaljoin = new \core\dml\sql_join($joins, $wheres, $params);
@@ -554,17 +554,17 @@ class user_table extends table_sql implements renderable {
 
             $records = $DB->get_records_sql($sql, $params);
             $quizdata = [
-                'quiz' => $quizobj->assessid,
+                'quiz' => $quizobj->id,
                 'quizinstance' => $context->instanceid,
-                'quiztimeopen' => $quizobj->timestampopen,
-                'quiztimeclose' => $quizobj->timestampclose,
-                'quiztimelimit' => $quizobj->timestamplimit,
+                'quiztimeopen' => $quizobj->timeopen,
+                'quiztimeclose' => $quizobj->timeclose,
+                'quiztimelimit' => $quizobj->timelimit,
                 'quizname' => $quizobj->name,
             ];
             foreach ($records as &$record) {
-                $record->timeopen ??= $quizobj->timestampopen;
-                $record->timeclose ??= $quizobj->timestampclose;
-                $record->timelimit ??= $quizobj->timestamplimit;
+                $record->timeopen ??= $quizobj->timeopen;
+                $record->timeclose ??= $quizobj->timeclose;
+                $record->timelimit ??= $quizobj->timelimit;
                 $record = (object)array_merge((array)$record, $quizdata);
             }
             $allrecords = array_merge($allrecords, $records);

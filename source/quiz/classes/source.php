@@ -36,9 +36,9 @@ use local_assessfreq\source_base;
 use mod_quiz\event\user_override_created;
 use mod_quiz\event\user_override_updated;
 use mod_quiz\question\bank\qbank_helper;
+use mod_quiz\quiz_settings;
 use moodle_exception;
 use moodle_url;
-use quiz;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -101,7 +101,7 @@ class Source extends source_base {
     public function get_activity_dashboard($cm, $course) : string {
         global $PAGE, $DB;
 
-        $quizobject = new quiz(
+        $quizobject = new quiz_settings(
             $DB->get_record('quiz', ['id' => $cm->instance]),
             $cm,
             $course
@@ -179,18 +179,17 @@ class Source extends source_base {
      * Count of questions in quiz,
      * Count of question types.
      *
-     * @param quiz $quizobject
+     * @param quiz_settings $quizobject
      * @return stdClass $questions The question data for the quiz.
      */
-    private function get_quiz_questions(quiz $quizobject) : stdClass {
+    private function get_quiz_questions(quiz_settings $quizobject) : stdClass {
         $questions = new stdClass();
         $types = [];
         $questioncount = 0;
 
         $quizobject->preload_questions();
-        $quizobject->load_questions();
 
-        foreach ($quizobject->get_questions() as $question) {
+        foreach ($quizobject->get_questions(null, false) as $question) {
             $types[] = get_string('pluginname', 'qtype_' . $question->qtype);
             $questioncount++;
         }
@@ -212,6 +211,8 @@ class Source extends source_base {
      * and total participants in progress.
      *
      * @param int $now Timestamp to use for reference for time.
+     * @param int $hoursahead
+     * @param int $hoursbehind
      */
     public function get_inprogress_count(int $now, int $hoursahead, int $hoursbehind) {
         // Get tracked quizzes.
@@ -413,7 +414,7 @@ class Source extends source_base {
      * @param int $now Timestamp to use for reference for time.
      * @return array $quizzes Array of finished, inprogress and upcoming quizzes with associated data.
      */
-    public function get_quiz_summaries(int $now, int $hoursahead, int $hoursbehind) : array {
+    public function get_quiz_summaries(int $now, int $hoursahead, int $hoursbehind, bool $fulldata = true) : array {
         // Get tracked quizzes.
         $lookahead = $hoursahead * HOURSECS;
         $lookbehind = $hoursbehind * HOURSECS;
@@ -438,17 +439,16 @@ class Source extends source_base {
 
             // Seperate out inprogress and upcoming quizzes, then get data for each quiz.
             foreach ($trackedquizzes as $quiz) {
-                $quizdata = $this->get_quiz_data($quiz);
 
                 if ($quiz->timeopen < $time && $quiz->timeclose > $time && $hour === 0) { // Get inprogress quizzes.
-                    $quizzes['inprogress'][$quiz->id] = $quizdata;
+                    $quizzes['inprogress'][$quiz->id] = $fulldata ? $this->get_quiz_data($quiz) : $quiz;
                     unset($trackedquizzes[$quiz->id]); // Remove quiz from array to help with performance.
                 } else if (($quiz->timeopen >= $time) && ($quiz->timeopen < ($time + HOURSECS))) { // Get upcoming quizzes.
-                    $quizzes['upcoming'][$time][$quiz->id] = $quizdata;
+                    $quizzes['upcoming'][$time][$quiz->id] = $fulldata ? $this->get_quiz_data($quiz) : $quiz;
                     unset($trackedquizzes[$quiz->id]);
                 } else {
                     if (isset($quiz->overrides)) {
-                        $quizzes['inprogress'][$quiz->id] = $quizdata;
+                        $quizzes['inprogress'][$quiz->id] = $fulldata ? $this->get_quiz_data($quiz) : $quiz;
                         unset($trackedquizzes[$quiz->id]);
                     }
                 }
@@ -496,15 +496,16 @@ class Source extends source_base {
     public function get_quiz_data($quiz) : stdClass {
         global $DB;
         $quizdata = new stdClass();
-        [$course, $cm] = get_course_and_cm_from_instance($quiz->id, 'quiz');
 
-        $quizobject = new quiz(
+        $course = get_course($quiz->course);
+        $cm = get_coursemodule_from_instance('quiz', $quiz->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+
+        $quizobject = new quiz_settings(
             $DB->get_record('quiz', ['id' => $cm->instance]),
             $cm,
             $course
         );
-
-        $context = $cm->context;
 
         $quizrecord = $DB->get_record('quiz', ['id' => $quiz->id], 'name, timeopen, timeclose, timelimit, course');
         $courseurl = new moodle_url('/course/view.php', ['id' => $quizrecord->course]);
@@ -549,12 +550,12 @@ class Source extends source_base {
         $quizdata->name = format_string($quizrecord->name, true, ["context" => $context, "escape" => true]);
         $quizdata->timeopen = $timesopen;
         $quizdata->timeclose = $timeclose;
-        $quizdata->timelimit = format_time($quizrecord->timelimit);
+        $quizdata->timelimit = !empty($quizrecord->timelimit) ? format_time($quizrecord->timelimit) : '-';
         $quizdata->earlyopen = $earlyopen;
         $quizdata->earlyopenstamp = $earlyopenstamp;
         $quizdata->lateclose = $lateclose;
         $quizdata->lateclosestamp = $lateclosestamp;
-        $quizdata->participants = count($frequency->get_event_users_raw($context->id, 'quiz'));
+        $quizdata->participants = count($frequency->get_event_users($context->id, 'quiz', false));
         $quizdata->overrideparticipants = $overrideinfo->users;
         $quizdata->url = $context->get_url()->out(false);
         $quizdata->types = $questions->types;
@@ -568,7 +569,7 @@ class Source extends source_base {
         $quizdata->participantlink = $participantlink->out(false);
         $quizdata->dashboardlink = $dashboardlink->out(false);
         $quizdata->assessid = $quiz->id;
-        $quizdata->context = $cm->context;
+        $quizdata->context = $context;
         $quizdata->timestampopen = $quizobject->get_quiz()->timeopen;
         $quizdata->timestampclose = $quizobject->get_quiz()->timeclose;
         $quizdata->timestamplimit = $quizobject->get_quiz()->timelimit;
@@ -646,7 +647,7 @@ class Source extends source_base {
 
         // Add override data to each quiz in the array.
         foreach ($overrides as $override) {
-            $sql = 'SELECT id, timeopen, timeclose, timelimit
+            $sql = 'SELECT id, timeopen, timeclose, timelimit, course, name
                       FROM {quiz}
                      WHERE id = :id';
             $params = [
@@ -688,7 +689,7 @@ class Source extends source_base {
         $starttime = $now + $lookahead;
         $endtime = $now - $lookbehind;
 
-        $sql = 'SELECT id, timeopen, timeclose, timelimit, 0 AS isoverride
+        $sql = 'SELECT id, timeopen, timeclose, timelimit, 0 AS isoverride, course, name
                   FROM {quiz}
                  WHERE (timeopen > 0 AND timeopen < :starttime)
                        AND (timeclose > :endtime OR timeclose > :now)';
@@ -700,6 +701,11 @@ class Source extends source_base {
         if ($PAGE->course->id != SITEID) {
             $sql .= " AND course = :courseid";
             $params['courseid'] = $PAGE->course->id;
+        }
+        $windowexclusion = get_config('assessfreqsource_quiz', 'windowexclusion');
+        if ($windowexclusion) {
+            $sql .= " AND (timeclose - timeopen) < :windowexclusion";
+            $params['windowexclusion'] = $windowexclusion;
         }
 
         return $DB->get_records_sql($sql, $params);
@@ -736,6 +742,11 @@ class Source extends source_base {
         if ($PAGE->course->id != SITEID) {
             $sql .= " AND q.course = :courseid";
             $params['courseid'] = $PAGE->course->id;
+        }
+        $windowexclusion = get_config('assessfreqsource_quiz', 'windowexclusion');
+        if ($windowexclusion) {
+            $sql .= " AND (qo.timeclose - qo.timeopen) < :windowexclusion";
+            $params['windowexclusion'] = $windowexclusion;
         }
 
         return $DB->get_records_sql($sql, $params);

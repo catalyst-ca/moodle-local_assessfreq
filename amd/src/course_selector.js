@@ -47,8 +47,6 @@ define(['core/ajax', 'core/notification'], function (Ajax, Notification) {
             let courseArray = JSON.parse(response);
             // eslint-disable-next-line promise/no-callback-in-promise
             callback(courseArray);
-        }).fail(() => {
-            Notification.exception(new Error('Failed to get events'));
         });
     };
 

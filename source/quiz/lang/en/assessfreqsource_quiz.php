@@ -30,6 +30,10 @@ $string['nodata'] = 'No data found';
 $string['na'] = 'N/A';
 $string['task:quiztracking'] = 'Quiz tracking task';
 
+$string['settings:windowexclusion'] = 'Window Exclusion';
+$string['settings:windowexclusion_desc'] = 'This setting will allow for quizzes that run for longer than the defined period to be excluded from "in progress" checks.
+This is useful for when a large number of quizzes have been created with large time windows as these affect the performance of reports.';
+
 $string['detailstable:course'] = 'Course';
 $string['detailstable:opentime'] = 'Open Time';
 $string['detailstable:closetime'] = 'Close Time';

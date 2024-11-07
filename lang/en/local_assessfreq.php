@@ -24,6 +24,8 @@
  */
 
 $string['pluginname'] = 'Assessment Frequency Report';
+$string['subplugintype_assessfreqreport_plural'] = 'Assessment Frequency Reports';
+$string['subplugintype_assessfreqsource_plural'] = 'Assessment Frequency Sources';
 
 $string['privacy:metadata'] = 'The assessment frequency reports only display data';
 

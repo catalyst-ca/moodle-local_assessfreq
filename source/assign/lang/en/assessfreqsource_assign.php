@@ -33,6 +33,10 @@ $string['nodata'] = 'No data found';
 
 $string['task:assigntracking'] = '';
 
+$string['settings:windowexclusion'] = 'Window Exclusion';
+$string['settings:windowexclusion_desc'] = 'This setting will allow for assignments that run for longer than the defined period to be excluded from "in progress" checks.
+This is useful for when a large number of assignments have been created with large time windows as these affect the performance of reports.';
+
 $string['detailstable:head'] = 'Assignment details';
 $string['detailstable:course'] = 'Course';
 $string['detailstable:opentime'] = 'Allow submissions from date/time';

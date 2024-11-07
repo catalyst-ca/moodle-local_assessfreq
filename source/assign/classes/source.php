@@ -78,7 +78,7 @@ class source extends source_base {
      * @inheritDoc
      */
     public function get_user_capabilities() : array {
-        return ['mod/assign:submit', 'mod/assign:view'];
+        return ['mod/assign:submit'];
     }
 
     /**
@@ -248,7 +248,11 @@ class source extends source_base {
             $sql .= " AND course = :courseid";
             $params['courseid'] = $PAGE->course->id;
         }
-
+        $windowexclusion = get_config('assessfreqsource_assign', 'windowexclusion');
+        if ($windowexclusion) {
+            $sql .= " AND (duedate - allowsubmissionsfromdate) < :windowexclusion";
+            $params['windowexclusion'] = $windowexclusion;
+        }
         return $DB->get_records_sql($sql, $params);
     }
 
@@ -283,6 +287,11 @@ class source extends source_base {
         if ($PAGE->course->id != SITEID) {
             $sql .= " AND a.course = :courseid";
             $params['courseid'] = $PAGE->course->id;
+        }
+        $windowexclusion = get_config('assessfreqsource_assign', 'windowexclusion');
+        if ($windowexclusion) {
+            $sql .= " AND (ao.duedate - ao.allowsubmissionsfromdate) < :windowexclusion";
+            $params['windowexclusion'] = $windowexclusion;
         }
 
         return $DB->get_records_sql($sql, $params);
@@ -417,18 +426,17 @@ class source extends source_base {
         return $override->id;
     }
 
-
     /**
      * Get counts for inprogress assessments, both total in progress assignment activities
      * and total participants in progress.
      *
      * @param int $now Timestamp to use for reference for time.
-     * @param bool $textual If true counts are returned with text for output.
+     * @param int $hoursahead
+     * @param int $hoursbehind
      */
-    public function get_inprogress_count(int $now, bool $textual = true) {
+    public function get_inprogress_count(int $now, int $hoursahead, int $hoursbehind) {
         // Get tracked assignments.
-        $trackedassignments = $this->get_tracked_assignments_with_overrides($now, 8 * HOURSECS, 8 * HOURSECS);
-
+        $trackedassignments = $this->get_tracked_assignments_with_overrides($now, $hoursahead * HOURSECS, $hoursbehind * HOURSECS);
         $counts = [
             'assessments' => 0,
             'participants' => 0,
@@ -444,10 +452,7 @@ class source extends source_base {
             }
         }
 
-        if ($textual) {
-            return get_string('inprogress:assessments', 'assessfreqsource_assign', $counts);
-        }
-        return $counts;
+        return get_string('inprogress:assessments', 'assessfreqsource_assign', $counts);
     }
 
     /**
@@ -478,7 +483,7 @@ class source extends source_base {
      * @param int $now Timestamp to use for reference for time.
      * @return array $assignments Array of finished, inprogress and upcoming assignments with associated data.
      */
-    public function get_assign_summaries(int $now, int $hoursahead, int $hoursbehind) : array {
+    public function get_assign_summaries(int $now, int $hoursahead, int $hoursbehind, bool $fulldata = true) : array {
 
         // Get tracked assignments.
         $lookahead = $hoursahead * HOURSECS;
@@ -504,17 +509,17 @@ class source extends source_base {
 
             // Seperate out inprogress and upcoming assignments, then get data for each assignment.
             foreach ($trackedassignments as $assignment) {
-                $assigndata = $this->get_assign_data($assignment);
+
                 $allowsubmissionsfromdate = $assignment->allowsubmissionsfromdate;
                 if ($assignment->allowsubmissionsfromdate < $time && $assignment->duedate > $time && $hour === 0) {
-                    $assignments['inprogress'][$assignment->id] = $assigndata;
+                    $assignments['inprogress'][$assignment->id] = $fulldata ? $this->get_assign_data($assignment) : $assignment;
                     unset($trackedassignments[$assignment->id]);
                 } else if ($allowsubmissionsfromdate >= $time && $allowsubmissionsfromdate < ($time + HOURSECS)) {
-                    $assignments['upcoming'][$time][$assignment->id] = $assigndata;
+                    $assignments['upcoming'][$time][$assignment->id] = $fulldata ? $this->get_assign_data($assignment) : $assignment;
                     unset($trackedassignments[$assignment->id]);
                 } else {
                     if (isset($assignment->overrides)) {
-                        $assignments['inprogress'][$assignment->id] = $assigndata;
+                        $assignments['inprogress'][$assignment->id] = $fulldata ? $this->get_assign_data($assignment) : $assignment;
                         unset($trackedassignments[$assignment->id]);
                     }
                 }
@@ -549,10 +554,11 @@ class source extends source_base {
     public function get_assign_data($assign) : stdClass {
         global $DB;
         $assigndata = new stdClass();
-        [$course, $cm] = get_course_and_cm_from_instance($assign->id, 'assign');
-        $context = $cm->context;
 
         $assignrecord = $DB->get_record('assign', ['id' => $assign->id]);
+        $course = get_course($assignrecord->course);
+        $cm = get_coursemodule_from_instance('assign', $assign->id, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
         $courseurl = new moodle_url('/course/view.php', ['id' => $assignrecord->course]);
 
         $overrideinfo = $this->get_assign_override_info($assign->id, $context);
@@ -611,12 +617,12 @@ class source extends source_base {
         $assigndata->name = format_string($assignrecord->name, true, ["context" => $context, "escape" => true]);
         $assigndata->allowsubmissionsfromdate = $allowsubmissionsfromdate;
         $assigndata->duedate = $duedate;
-        $assigndata->timelimit = format_time($assignrecord->timelimit);
+        $assigndata->timelimit = !empty($assignrecord->timelimit) ? format_time($assignrecord->timelimit) : '-';
         $assigndata->earlyopen = $earlyopen;
         $assigndata->earlyopenstamp = $earlyopenstamp;
         $assigndata->lateclose = $lateclose;
         $assigndata->lateclosestamp = $lateclosestamp;
-        $assigndata->participants = count($frequency->get_event_users_raw($context->id, 'assign'));
+        $assigndata->participants = count($frequency->get_event_users($context->id, 'assign', false));
         $assigndata->overrideparticipants = $overrideinfo->users;
         $assigndata->url = $context->get_url()->out(false);
         $assigndata->resultlink = $resultlink->out(false);

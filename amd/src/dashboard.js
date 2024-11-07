@@ -24,7 +24,28 @@
 
 export const init = () => {
 
-    // Load the tab cuntionality.
+    // Create the course search filter.
+    require(['core/form-autocomplete', 'core/str'], function(Autocomplete, Str) {
+        Str.get_string('courseselect', 'local_assessfreq').then((loading) => {
+            Autocomplete.enhance(
+                '#local-assessfreq-course-filter',
+                false,
+                'local_assessfreq/course_selector',
+                loading,
+                false,
+                true,
+            );
+            const course_filter = document.getElementById("local-assessfreq-course-filter");
+            course_filter.addEventListener('change', event => {
+                let courseid = event.target.value;
+                let url = new URL(window.location);
+                url.searchParams.set('courseid', courseid);
+                window.location = url;
+            });
+        });
+    });
+
+    // Load the tab functionality.
     tabs();
 
 };

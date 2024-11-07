@@ -70,6 +70,11 @@ class renderer extends plugin_renderer_base {
             }
         }
 
+        $yearfilter = true;
+        if ($this->page->course->id != SITEID) {
+            $yearfilter = get_config('assessfreqreport_heatmap', 'courselevelyearfilter');
+        }
+
         return $this->render_from_template(
             'assessfreqreport_heatmap/heatmap',
             [
@@ -82,7 +87,7 @@ class renderer extends plugin_renderer_base {
                 ],
                 'downloadmetric' => $preferencemetric,
                 'sesskey' => sesskey(),
-                'yearfilter' => get_config('assessfreqreport_heatmap', 'courselevelyearfilter'),
+                'yearfilter' => $yearfilter,
                 'courseid' => $this->page->course->id,
                 'months' => $months,
                 'scales' => html_writer::table($scalestable),

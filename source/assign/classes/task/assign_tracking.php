@@ -62,7 +62,7 @@ class assign_tracking extends scheduled_task {
 
         foreach ($assignments as $assignment) {
             [, $cm] = get_course_and_cm_from_instance($assignment->id, 'assign');
-            $assignmentusersbyid[$assignment->id] = array_column($frequency->get_event_users_raw($cm->context->id, 'assign'), 'id');
+            $assignmentusersbyid[$assignment->id] = array_column($frequency->get_event_users_raw($cm->context->id, 'assign'), 'userid');
         }
 
         $loggedinusers = get_loggedin_users(array_unique(array_reduce($assignmentusersbyid, 'array_merge', [])));

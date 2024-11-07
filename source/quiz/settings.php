@@ -15,26 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of assess freq plugin scheduled tasks.
+ * Settings file.
  *
- * @package   local_assessfreq
- * @category  task
- * @copyright 2020 Matt Porritt <mattp@catalyst-au.net>
+ * @package   assessfreqsource_quiz
+ * @author    Simon Thornett <simon.thornett@catalyst-eu.net>
+ * @copyright Catalyst IT, 2024
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/* List of handlers */
+if (!$hassiteconfig) {
+    return;
+}
 
-$tasks = [
-    [
-        'classname' => 'local_assessfreq\task\data_process',
-        'blocking' => 0,
-        'minute' => '*/15',
-        'hour' => '*',
-        'day' => '*',
-        'dayofweek' => '*',
-        'month' => '*',
-    ]
-];
+$settings->add(new admin_setting_configduration(
+    'assessfreqsource_quiz/windowexclusion',
+    get_string('settings:windowexclusion', 'assessfreqsource_quiz'),
+    get_string('settings:windowexclusion_desc', 'assessfreqsource_quiz'),
+    7 * DAYSECS
+));

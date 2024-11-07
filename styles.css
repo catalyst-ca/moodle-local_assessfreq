@@ -9,6 +9,12 @@ body #local-assessfreq-index {
     background-color: #f1f1f1;
 }
 
+/* Hide the filter options */
+#local-assessfreq-index .form-autocomplete-selection,
+#local-assessfreq-index #local-assessfreq-course-filter {
+    display: none;
+}
+
 /* Style the buttons inside the tab */
 #local-assessfreq-index .tabs a {
     color: #000;
@@ -39,6 +45,7 @@ body #local-assessfreq-index {
     border: 1px solid #ddd;
     border-top: 0;
     text-align: left;
+    overflow: scroll;
 }
 
 #local-assessfreq-index .chart-area .chart-image {

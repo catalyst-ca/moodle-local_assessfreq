@@ -35,6 +35,10 @@ $course = get_course(SITEID);
 
 // If we have a course selected, update the PAGE object accordinging.
 if ($courseid = optional_param('courseid', 0, PARAM_INT)) {
+    // If we've been given the side id redirect without the param.
+    if ($courseid == SITEID) {
+        redirect('/local/assessfreq/');
+    }
     $context = context_course::instance($courseid);
     $PAGE->set_pagelayout('incourse');
     $course = get_course($courseid);

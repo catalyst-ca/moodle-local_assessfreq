@@ -72,7 +72,6 @@ class report extends report_base {
         $upcoming = [];
         $participants = [];
         $now = time();
-
         $modulepreference = json_decode(
             get_user_preferences('assessfreqreport_activities_in_progress_modules_preference', '["all"]')
         );

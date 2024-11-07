@@ -33,11 +33,14 @@ function xmldb_local_assessfreq_upgrade($oldversion) {
 
     $dbman = $DB->get_manager();
 
-    if ($oldversion < 2024021413) {
+    if ($oldversion < 2024040302) {
 
         $table = new xmldb_table('local_assessfreq_trend');
-        $field = new xmldb_field('module', XMLDB_TYPE_CHAR, '20', true, true);
-        $index = new xmldb_index('module', XMLDB_INDEX_NOTUNIQUE, ['module']);
+        /*
+         * Previously we only used this table for quiz, so all existing modules will be quiz modules, hence the default.
+         */
+        $field = new xmldb_field('module', XMLDB_TYPE_CHAR, '20', true, true, null, 'quiz');
+        $index = new xmldb_index('module', XMLDB_INDEX_NOTUNIQUE, ['assessid', 'module']);
 
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -47,12 +50,7 @@ function xmldb_local_assessfreq_upgrade($oldversion) {
             $dbman->add_index($table, $index);
         }
 
-        /*
-         * Previously we only used this table for quiz, so all existing modules will be quiz modules.
-         */
-        $DB->execute("UPDATE {local_assessfreq_trend} SET module = 'quiz'");
-
-        upgrade_plugin_savepoint(true, 2024021413, 'local', 'assessfreq');
+        upgrade_plugin_savepoint(true, 2024040302, 'local', 'assessfreq');
     }
 
     return true;
