@@ -27,7 +27,8 @@ $string['pluginname'] = 'Report - Student Search';
 
 $string['tab:name'] = 'Student Search';
 
-$string['studentsearch:head'] = 'Student attempt status';
+$string['student_search:head'] = 'Student attempt status';
+$string['student_search:view'] = 'Ability to view the student search report.';
 
 $string['settings:graphsheading'] = 'Chart settings';
 $string['settings:graphsheading_desc'] = 'These settings allow you to configure the the settings used in the charts and graphs';
@@ -51,26 +52,24 @@ $string['filter:hoursbehind'] = 'Hours behind';
 
 $string['report:usage_guidlines'] = '';
 
-$string['studentsearch:quiz'] = 'Quiz';
-$string['studentsearch:na'] = 'N/A';
-$string['studentsearch:trenddatetime'] = '%H:%M, %d-%m-%y';
-$string['studentsearch:abandoned'] = 'Abandoned';
-$string['studentsearch:notloggedin'] = 'Not logged in';
-$string['studentsearch:loggedin'] = 'Logged in';
-$string['studentsearch:inprogress'] = 'In progress';
-$string['studentsearch:finished'] = 'Finished';
-$string['studentsearch:uploadpending'] = 'Upload pending';
-$string['studentsearch:overdue'] = 'Overdue';
-$string['studentsearch:useroverride'] = 'Add user override';
-$string['studentsearch:quiztimeopen'] = 'Open time';
-$string['studentsearch:quiztimeclose'] = 'Close time';
-$string['studentsearch:quiztimelimit'] = 'Time limit';
-$string['studentsearch:quiztimestart'] = 'Start';
-$string['studentsearch:quiztimefinish'] = 'Finish';
-$string['studentsearch:status'] = 'Status';
-$string['studentsearch:actions'] = 'Actions';
-$string['studentsearch:userlogs'] = 'View user logs';
-$string['studentsearch:userattempt'] = 'View user attempt';
-$string['studentsearch:userprofile'] = 'View user profile';
-
-$string[''] = '';
+$string['student_search:quiz'] = 'Quiz';
+$string['student_search:na'] = 'N/A';
+$string['student_search:trenddatetime'] = '%H:%M, %d-%m-%y';
+$string['student_search:abandoned'] = 'Abandoned';
+$string['student_search:notloggedin'] = 'Not logged in';
+$string['student_search:loggedin'] = 'Logged in';
+$string['student_search:inprogress'] = 'In progress';
+$string['student_search:finished'] = 'Finished';
+$string['student_search:uploadpending'] = 'Upload pending';
+$string['student_search:overdue'] = 'Overdue';
+$string['student_search:useroverride'] = 'Add user override';
+$string['student_search:quiztimeopen'] = 'Open time';
+$string['student_search:quiztimeclose'] = 'Close time';
+$string['student_search:quiztimelimit'] = 'Time limit';
+$string['student_search:quiztimestart'] = 'Start';
+$string['student_search:quiztimefinish'] = 'Finish';
+$string['student_search:status'] = 'Status';
+$string['student_search:actions'] = 'Actions';
+$string['student_search:userlogs'] = 'View user logs';
+$string['student_search:userattempt'] = 'View user attempt';
+$string['student_search:userprofile'] = 'View user profile';

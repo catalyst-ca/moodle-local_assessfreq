@@ -62,7 +62,7 @@ class renderer extends plugin_renderer_base {
                 ],
                 'table' => [
                     'id' => 'assessfreqreport-student-search',
-                    'name' => get_string('studentsearch:head', 'assessfreqreport_student_search'),
+                    'name' => get_string('student_search:head', 'assessfreqreport_student_search'),
                     'rows' => [$rows[$preferencerows] => 'true'],
                 ]
             ]

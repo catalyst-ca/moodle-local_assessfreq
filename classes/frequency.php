@@ -366,7 +366,7 @@ class frequency {
             $users = $users + get_users_from_role_on_context($role, $coursecontext);
         }
 
-        $this->eventuserscache[$cachekey] = array_column($users, 'userid');
+        $this->eventuserscache[$cachekey] = $users;
         return $this->eventuserscache[$cachekey];
     }
 
@@ -1025,7 +1025,8 @@ class frequency {
             $params = [];
             $sql = 'SELECT s.module, COUNT(s.id) as count
                       FROM {local_assessfreq_site} s
-                 LEFT JOIN {course} c ON s.courseid = c.id ';
+                 LEFT JOIN {course} c ON s.courseid = c.id 
+                 WHERE 1=1';
 
             $includehiddencourses = get_config('local_assessfreq', 'hiddencourses');
             if (!$includehiddencourses) {
