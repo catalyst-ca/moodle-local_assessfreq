@@ -108,7 +108,7 @@ class user_table extends table_sql implements renderable {
             $columns[] = $field;
         }
 
-        $headers[] = get_string('studentsearch:quiz', 'assessfreqreport_student_search');
+        $headers[] = get_string('student_search:quiz', 'assessfreqreport_student_search');
         $columns[] = 'quizname';
 
         $this->define_columns(array_merge($columns, $this->get_common_columns()));
@@ -143,9 +143,9 @@ class user_table extends table_sql implements renderable {
      */
     public function col_timestart($row) {
         if ($row->timestart == 0) {
-            $content = \html_writer::span(get_string('studentsearch:na', 'assessfreqreport_student_search'));
+            $content = \html_writer::span(get_string('student_search:na', 'assessfreqreport_student_search'));
         } else {
-            $datetime = userdate($row->timestart, get_string('studentsearch:trenddatetime', 'assessfreqreport_student_search'));
+            $datetime = userdate($row->timestart, get_string('student_search:trenddatetime', 'assessfreqreport_student_search'));
             $content = \html_writer::span($datetime);
         }
 
@@ -161,13 +161,13 @@ class user_table extends table_sql implements renderable {
      */
     public function col_timefinish($row) {
         if ($row->timefinish == 0 && $row->timestart == 0) {
-            $content = \html_writer::span(get_string('studentsearch:na', 'assessfreqreport_student_search'));
+            $content = \html_writer::span(get_string('student_search:na', 'assessfreqreport_student_search'));
         } else if ($row->timefinish == 0 && $row->timestart > 0) {
             $time = $row->timestart + $row->timelimit;
-            $datetime = userdate($time, get_string('studentsearch:trenddatetime', 'assessfreqreport_student_search'));
+            $datetime = userdate($time, get_string('student_search:trenddatetime', 'assessfreqreport_student_search'));
             $content = \html_writer::span($datetime, 'local-assessfreq-disabled');
         } else {
-            $datetime = userdate($row->timefinish, get_string('studentsearch:trenddatetime', 'assessfreqreport_student_search'));
+            $datetime = userdate($row->timefinish, get_string('student_search:trenddatetime', 'assessfreqreport_student_search'));
             $content = \html_writer::span($datetime);
         }
 
@@ -199,7 +199,7 @@ class user_table extends table_sql implements renderable {
         }
 
         $content = \html_writer::span('', 'local-assessfreq-status-icon', ['style' => $color]);
-        $content .= get_string('studentsearch:'.$row->state, 'assessfreqreport_student_search');
+        $content .= get_string('student_search:'.$row->state, 'assessfreqreport_student_search');
 
         return $content;
     }
@@ -211,13 +211,13 @@ class user_table extends table_sql implements renderable {
      */
     protected function get_common_headers(): array {
         return [
-            get_string('studentsearch:quiztimeopen', 'assessfreqreport_student_search'),
-            get_string('studentsearch:quiztimeclose', 'assessfreqreport_student_search'),
-            get_string('studentsearch:quiztimelimit', 'assessfreqreport_student_search'),
-            get_string('studentsearch:quiztimestart', 'assessfreqreport_student_search'),
-            get_string('studentsearch:quiztimefinish', 'assessfreqreport_student_search'),
-            get_string('studentsearch:status', 'assessfreqreport_student_search'),
-            get_string('studentsearch:actions', 'assessfreqreport_student_search'),
+            get_string('student_search:quiztimeopen', 'assessfreqreport_student_search'),
+            get_string('student_search:quiztimeclose', 'assessfreqreport_student_search'),
+            get_string('student_search:quiztimelimit', 'assessfreqreport_student_search'),
+            get_string('student_search:quiztimestart', 'assessfreqreport_student_search'),
+            get_string('student_search:quiztimefinish', 'assessfreqreport_student_search'),
+            get_string('student_search:status', 'assessfreqreport_student_search'),
+            get_string('student_search:actions', 'assessfreqreport_student_search'),
         ];
     }
 
@@ -261,7 +261,7 @@ class user_table extends table_sql implements renderable {
                 'id' => 'tool-assessfreq-attempt-' . $row->id,
                 'data-toggle' => 'tooltip',
                 'data-placement' => 'top',
-                'title' => get_string('studentsearch:userattempt', 'assessfreqreport_student_search'),
+                'title' => get_string('student_search:userattempt', 'assessfreqreport_student_search'),
             ];
         } else {
             $classes = 'action-icon disabled';
@@ -281,7 +281,7 @@ class user_table extends table_sql implements renderable {
             'id' => 'tool-assessfreq-profile-' . $row->id,
             'data-toggle' => 'tooltip',
             'data-placement' => 'top',
-            'title' => get_string('studentsearch:userprofile', 'assessfreqreport_student_search'),
+            'title' => get_string('student_search:userprofile', 'assessfreqreport_student_search'),
         ]);
 
         $logurl = new \moodle_url('/report/log/user.php', ['id' => $row->id, 'course' => 1, 'mode' => 'all']);
@@ -291,7 +291,7 @@ class user_table extends table_sql implements renderable {
             'id' => 'tool-assessfreq-log-' . $row->id,
             'data-toggle' => 'tooltip',
             'data-placement' => 'top',
-            'title' => get_string('studentsearch:userlogs', 'assessfreqreport_student_search'),
+            'title' => get_string('student_search:userlogs', 'assessfreqreport_student_search'),
         ]);
         return $actions;
     }
@@ -338,7 +338,7 @@ class user_table extends table_sql implements renderable {
      * @return string html used to display the field.
      */
     public function col_timeopen($row) {
-        $datetime = userdate($row->timeopen, get_string('studentsearch:trenddatetime', 'assessfreqreport_student_search'));
+        $datetime = userdate($row->timeopen, get_string('student_search:trenddatetime', 'assessfreqreport_student_search'));
 
         if ($row->timeopen != $row->quiztimeopen) {
             $content = \html_writer::span($datetime, 'local-assessfreq-override-status');
@@ -357,7 +357,7 @@ class user_table extends table_sql implements renderable {
      * @return string html used to display the field.
      */
     public function col_timeclose($row) {
-        $datetime = userdate($row->timeclose, get_string('studentsearch:trenddatetime', 'assessfreqreport_student_search'));
+        $datetime = userdate($row->timeclose, get_string('student_search:trenddatetime', 'assessfreqreport_student_search'));
 
         if ($row->timeclose != $row->quiztimeclose) {
             $content = \html_writer::span($datetime, 'local-assessfreq-override-status');
@@ -408,7 +408,7 @@ class user_table extends table_sql implements renderable {
         //    'id' => 'tool-assessfreq-override-' . $row->id . '-' . $row->quiz,
         //    'data-toggle' => 'tooltip',
         //    'data-placement' => 'top',
-        //    'title' => get_string('studentsearch:useroverride', 'assessfreqreport_student_search'),
+        //    'title' => get_string('student_search:useroverride', 'assessfreqreport_student_search'),
         //]);
 
         $manage .= $this->get_common_column_actions($row);
