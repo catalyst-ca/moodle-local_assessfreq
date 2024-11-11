@@ -71,7 +71,7 @@ function get_reports($ignoreenabled = false) : array {
  * @param $ignoreenabled
  * @return array
  */
-function get_sources($ignoreenabled = false) : array {
+function get_sources($ignoreenabled = false, $requiredmethod = '') : array {
     $sources = [];
     $pluginmanager = core_plugin_manager::instance();
     foreach ($pluginmanager->get_plugins_of_type('assessfreqsource') as $subplugin) {
@@ -79,6 +79,11 @@ function get_sources($ignoreenabled = false) : array {
             /* @var $class source_base */
             $class = "assessfreqsource_{$subplugin->name}\\source";
             $source = $class::get_instance();
+            if (!empty($requiredmethod)) {
+                if (!method_exists($source, $requiredmethod)) {
+                    continue;
+                }
+            }
             $sources[$subplugin->name] = $source;
         }
     }
@@ -151,9 +156,9 @@ function get_years($preference) : array {
  *
  * @return array $modules The enabled modules.
  */
-function get_modules($preferences) : array {
+function get_modules($preferences, $requiredmethod= '') : array {
 
-    $sources = get_sources();
+    $sources = get_sources(false, $requiredmethod);
 
     // Get modules for filters and load into context.
     $modules = [];

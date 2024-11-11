@@ -58,7 +58,7 @@ class renderer extends plugin_renderer_base {
             ]
         );
 
-        // upcoming activities starting.
+        // Upcoming activities starting.
         $labels = [];
         $seriestitle = get_string('upcomingchart:activities', 'assessfreqreport_activities_in_progress');
         $participantseries = get_string('upcomingchart:participants', 'assessfreqreport_activities_in_progress');
@@ -202,19 +202,18 @@ class renderer extends plugin_renderer_base {
             8 => 'hours8',
         ];
 
+        $preferencemodule = json_decode(
+            get_user_preferences('assessfreqreport_activities_in_progress_modules_preference', '["all"]'),
+            true
+        );
+        // Only get modules with the "get_inprogress_count" method as only these display on the report.
+        $modules = get_modules($preferencemodule, 'get_inprogress_count');
+
         return $this->render_from_template(
             'assessfreqreport_activities_in_progress/activities-in-progress',
             [
                 'filters' => [
-                    'modules' => get_modules(
-                        json_decode(
-                            get_user_preferences(
-                                'assessfreqreport_activities_in_progress_modules_preference',
-                                '["all"]'
-                            ),
-                            true
-                        )
-                    ),
+                    'modules' => $modules,
                     'hoursahead' => [$hours[$preferencehoursahead] => 'true'],
                     'hoursbehind' => [$hours[$preferencehoursbehind] => 'true'],
                 ],

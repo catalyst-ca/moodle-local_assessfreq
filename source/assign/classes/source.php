@@ -456,6 +456,56 @@ class source extends source_base {
     }
 
     /**
+     * Generate the markup for the summary chart,
+     * used in the in progress quizzes dashboard.
+     *
+     * @param int $now Timestamp to get chart data for.
+     * @return array With Generated chart object and chart data status.
+     */
+    public function get_all_participants_inprogress_data(int $now, int $hoursahead, int $hoursbehind) : array {
+
+        // Get assignments for the supplied timestamp.
+        $assignments = $this->get_assign_summaries($now, $hoursahead, $hoursbehind);
+
+        $inprogressassignments = $assignments['inprogress'];
+        $upcomingassignments = $assignments['upcoming'];
+        $finishedassignments = $assignments['finished'];
+
+        foreach ($upcomingassignments as $upcomingassignment) {
+            foreach ($upcomingassignment as $timestampupcoming => $upcoming) {
+                $inprogressassignments[$timestampupcoming] = $upcoming;
+            }
+        }
+
+        foreach ($finishedassignments as $finishedassignment) {
+            foreach ($finishedassignment as $timestampfinished => $finished) {
+                $inprogressassignments[$timestampfinished] = $finished;
+            }
+        }
+
+        $notloggedin = 0;
+        $loggedin = 0;
+        $inprogress = 0;
+        $finished = 0;
+
+        foreach ($inprogressassignments as $inprogressassignment) {
+            if (!empty($inprogressassignment->tracking)) {
+                $notloggedin += $inprogressassignment->tracking->notloggedin;
+                $loggedin += $inprogressassignment->tracking->loggedin;
+                $inprogress += $inprogressassignment->tracking->inprogress;
+                $finished += $inprogressassignment->tracking->finished;
+            }
+        }
+
+        return [
+            'notloggedin' => $notloggedin,
+            'loggedin' => $loggedin,
+            'inprogress' => $inprogress,
+            'finished' => $finished,
+        ];
+    }
+
+    /**
      * Get data for all inprogress assignments.
      *
      * @param int $now
